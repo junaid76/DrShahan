@@ -1,0 +1,30 @@
+{
+  "name": "Dr. Shahan Medical Portfolio",
+  "image": "mcr.microsoft.com/devcontainers/python:3.9",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.pylint",
+        "bradlc.vscode-tailwindcss"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
+      }
+    }
+  },
+  "postCreateCommand": "pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "Django App",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "remoteUser": "vscode"
+}
