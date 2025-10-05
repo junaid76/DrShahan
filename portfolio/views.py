@@ -3,38 +3,24 @@ from django.http import HttpResponse
 from .models import DoctorProfile, BeforeAfterPair
 
 def home(request):
+    # Create profile data directly for demo
+    context = {
+        'profile': {
+            'site_title': 'Dr. Shahan',
+            'tagline': 'Expert Medical Care & Advanced Treatments',
+            'bio': 'Providing exceptional medical care with years of experience in advanced treatment techniques.',
+            'specialties': 'Wound Care, Plastic Surgery, Reconstructive Surgery',
+            'services': 'Advanced Wound Care\nPlastic Surgery\nReconstructive Surgery\nSkin Treatments',
+            'achievements': 'Board Certified Physician\n10+ Years Experience\n500+ Successful Cases\nExcellence in Patient Care',
+            'phone': '+1-555-0123',
+            'email': 'dr.shahan@example.com',
+            'address': '123 Medical Center, Healthcare City',
+        },
+        'featured_pairs': []  # Empty for now
+    }
+    
     try:
-        # Try to get or create a profile
-        profile, created = DoctorProfile.objects.get_or_create(
-            id=1,
-            defaults={
-                'site_title': 'Dr. Shahan',
-                'tagline': 'Expert Medical Care & Advanced Treatments',
-                'bio': 'Providing exceptional medical care with years of experience in advanced treatment techniques.',
-                'specialties': 'Wound Care, Plastic Surgery, Reconstructive Surgery',
-                'services': 'Advanced Wound Care\nPlastic Surgery\nReconstructive Surgery\nSkin Treatments',
-                'achievements': 'Board Certified Physician\n10+ Years Experience\n500+ Successful Cases\nExcellence in Patient Care',
-                'phone': '+1-555-0123',
-                'email': 'dr.shahan@example.com',
-                'address': '123 Medical Center, Healthcare City',
-                'is_live': True
-            }
-        )
-        
-        # Get featured pairs safely
-        featured_pairs = []
-        try:
-            featured_pairs = BeforeAfterPair.objects.filter(
-                case__profile=profile, publish=True, case__consent_to_publish=True, featured=True
-            ).select_related('case')[:12]
-        except:
-            pass  # Empty pairs is fine for demo
-            
-        return render(request, 'portfolio/home.html', {
-            'profile': profile, 
-            'featured_pairs': featured_pairs
-        })
-        
+        return render(request, 'portfolio/home.html', context)
     except Exception as e:
         # Ultimate fallback - return simple HTML
         return HttpResponse(f'''
