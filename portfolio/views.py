@@ -33,7 +33,7 @@ def home(request):
             'has_demo_data': True
         }
         
-        return render(request, 'portfolio/home.html', context)
+        return render(request, 'portfolio/home_simple.html', context)
         
     except Exception as e:
         # Log the error for debugging
