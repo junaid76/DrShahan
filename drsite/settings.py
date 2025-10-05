@@ -35,6 +35,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lamb
 import os
 if os.environ.get('VERCEL'):
     ALLOWED_HOSTS = ['*']  # Allow all hosts on Vercel for simplicity
+    print("Running on Vercel - allowing all hosts")  # Debug log
 elif not DEBUG:
     ALLOWED_HOSTS.extend([
         '.vercel.app',  # All Vercel subdomains
