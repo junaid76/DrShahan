@@ -13,19 +13,35 @@ def home(request):
         if not profile:
             raise Exception("No profile found")
             
-        # Get cases for featured section
+        # Get actual BeforeAfterPair objects if they exist
+        featured_pairs = BeforeAfterPair.objects.filter(
+            publish=True,
+            featured=True,
+            case__consent_to_publish=True
+        ).select_related('case')[:6]
+        
+        # Get cases for backup
         featured_cases = PatientCase.objects.filter(
-            consent_to_publish=True,
-            category__in=['wound-care', 'reconstructive', 'burn-care']
+            consent_to_publish=True
         )[:6]
             
-        return render(request, 'portfolio/home.html', {
+        # Create context
+        context = {
             'profile': profile, 
-            'featured_pairs': featured_cases  # Using cases instead of pairs for now
-        })
+            'featured_pairs': featured_pairs,  # Will be empty but template can handle it
+            'featured_cases': featured_cases,
+            'has_demo_data': True
+        }
+        
+        return render(request, 'portfolio/home.html', context)
         
     except Exception as e:
-        # Beautiful fallback HTML
+        # Log the error for debugging
+        print(f"Template rendering error: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Beautiful fallback HTML that matches your current view
         return HttpResponse("""
         <!DOCTYPE html>
         <html>
