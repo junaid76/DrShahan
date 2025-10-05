@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.core.management import call_command
-from .models import DoctorProfile, BeforeAfterPair, PatientCase
+from .models import DoctorProfile, BeforeAfterPair
 
 def home(request):
     try:
@@ -13,20 +13,21 @@ def home(request):
         if not profile:
             raise Exception("No profile found")
             
-        # Get cases for featured section
-        featured_cases = PatientCase.objects.filter(
-            consent_to_publish=True,
-            category__in=['wound-care', 'reconstructive', 'burn-care']
-        )[:6]
+        # Get featured pairs
+        featured_pairs = BeforeAfterPair.objects.filter(
+            publish=True, 
+            featured=True,
+            case__consent_to_publish=True
+        ).select_related('case')[:12]
             
         return render(request, 'portfolio/home.html', {
             'profile': profile, 
-            'featured_pairs': featured_cases  # Using cases instead of pairs for now
+            'featured_pairs': featured_pairs
         })
         
     except Exception as e:
         # Beautiful fallback HTML
-        return HttpResponse("""
+        fallback_html = """
         <!DOCTYPE html>
         <html>
         <head>
@@ -71,7 +72,8 @@ def home(request):
             </section>
         </body>
         </html>
-        """)
+        """
+        return HttpResponse(fallback_html)
 
 def gallery(request):
     try:
@@ -79,18 +81,62 @@ def gallery(request):
         call_command('create_demo_data')
         
         profile = DoctorProfile.objects.first()
-        cases = PatientCase.objects.filter(consent_to_publish=True)
+        pairs = BeforeAfterPair.objects.filter(
+            publish=True,
+            case__consent_to_publish=True
+        ).select_related('case')
         
         return render(request, 'portfolio/gallery.html', {
             'profile': profile,
-            'pairs': cases  # Using cases instead of pairs for now
+            'pairs': pairs
         })
     except Exception as e:
         return HttpResponse('<h1>Gallery - Demo Data Loading...</h1>')
 
 def pair_detail(request, pair_id):
     try:
-        case = get_object_or_404(PatientCase, id=pair_id, consent_to_publish=True)
-        return render(request, 'portfolio/pair.html', {'pair': case})
+        pair = get_object_or_404(BeforeAfterPair, id=pair_id, publish=True)
+        return render(request, 'portfolio/pair.html', {'pair': pair})
     except Exception as e:
         return HttpResponse('<h1>Case Details - Demo Data Loading...</h1>')
+                    <h1 class="display-4 text-primary">Dr. Shahan</h1>
+                    <p class="lead">Expert Medical Care & Advanced Treatments</p>
+                    <p>Providing exceptional medical care with years of experience.</p>
+                    <a href="/admin/" class="btn btn-primary">Admin Panel</a>
+                </div>
+            </div>
+            <footer class="bg-light py-4 mt-5">
+                <div class="container text-center">
+                    <p class="mb-0">📞 +1-555-0123 | ✉️ dr.shahan@example.com</p>
+                </div>
+            </footer>
+        </body>
+        </html>
+        ''')
+
+def gallery(request):
+    try:
+        profile = DoctorProfile.objects.first()
+        if not profile:
+            profile = DoctorProfile.objects.create(
+                site_title='Dr. Shahan',
+                tagline='Expert Medical Care & Advanced Treatments',
+                bio='Medical Portfolio',
+                is_live=True
+            )
+        
+        pairs = BeforeAfterPair.objects.filter(
+            case__profile=profile, publish=True, case__consent_to_publish=True
+        ).select_related('case').order_by('-id')
+        
+        return render(request, 'portfolio/gallery.html', {'profile': profile, 'pairs': pairs})
+    except Exception as e:
+        return HttpResponse('<h1>Gallery Coming Soon</h1><a href="/">Back to Home</a>')
+
+def public_pair(request, token):
+    try:
+        pair = get_object_or_404(BeforeAfterPair, public_token=token, publish=True, case__consent_to_publish=True)
+        profile = pair.case.profile
+        return render(request, 'portfolio/pair.html', {'profile': profile, 'pair': pair})
+    except Exception as e:
+        return HttpResponse('<h1>Case Not Found</h1><a href="/">Back to Home</a>')

@@ -6,7 +6,7 @@ from portfolio import views as v
 urlpatterns = [
     path('', v.home, name='home'),
     path('gallery/', v.gallery, name='gallery'),
-    path('pair/<uuid:token>/', v.public_pair, name='public_pair'),
+    path('pair/<int:pair_id>/', v.pair_detail, name='pair_detail'),
 ]
 
 if settings.DEBUG:
