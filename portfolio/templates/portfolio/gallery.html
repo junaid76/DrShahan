@@ -1,0 +1,517 @@
+{% extends 'portfolio/base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section py-5 mb-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8 mx-auto text-center">
+        <h1 class="display-4 fw-bold text-white mb-3">Before & After Gallery</h1>
+        <p class="lead text-white-50 mb-4">
+          Witness remarkable transformations and exceptional medical care results
+        </p>
+        <div class="stats-row d-flex justify-content-center gap-4 flex-wrap">
+          <div class="stat-item text-center">
+            <div class="stat-number display-6 fw-bold text-white">{{ pairs|length }}</div>
+            <div class="stat-label text-white-50">Success Stories</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Filter Section -->
+<div class="container mb-5">
+  <div class="row">
+    <div class="col-12">
+      <div class="filter-section text-center mb-4">
+        <h5 class="mb-3">Filter by Category</h5>
+        <div class="filter-buttons">
+          <button class="btn btn-outline-primary active filter-btn" data-filter="all">
+            <i class="bi bi-grid-3x3"></i> All Cases
+          </button>
+          {% regroup pairs by case.category as category_list %}
+          {% for category in category_list %}
+            {% if category.grouper %}
+              <button class="btn btn-outline-primary filter-btn" data-filter="{{ category.grouper|slugify }}">
+                <i class="bi bi-tag"></i> {{ category.grouper }}
+              </button>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Gallery Grid -->
+<div class="container pb-5">
+  <div class="row g-4" id="gallery-grid">
+    {% for p in pairs %}
+    <div class="col-lg-4 col-md-6 gallery-item fade-in-up" data-category="{{ p.case.category|slugify|default:'uncategorized' }}">
+      <div class="gallery-card">
+        <div class="card-image-container">
+          <!-- Before Image -->
+          <div class="before-after-container">
+            <div class="image-wrapper before-image">
+              <img src="{{ p.pre_image.image.url }}" 
+                   alt="Before - {{ p.case.title|default:'Treatment' }}"
+                   class="gallery-image"
+                   loading="lazy">
+              <div class="image-overlay">
+                <span class="image-label">Before</span>
+              </div>
+            </div>
+            
+            <!-- Transformation Arrow -->
+            <div class="transform-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+            
+            <!-- After Image -->
+            <div class="image-wrapper after-image">
+              <img src="{{ p.post_image.image.url }}" 
+                   alt="After - {{ p.case.title|default:'Treatment' }}"
+                   class="gallery-image"
+                   loading="lazy">
+              <div class="image-overlay">
+                <span class="image-label">After</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- View Button -->
+          <div class="view-overlay">
+            <button class="btn btn-light btn-lg view-btn" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#imageModal"
+                    data-before="{{ p.pre_image.image.url }}"
+                    data-after="{{ p.post_image.image.url }}"
+                    data-title="{{ p.case.title|default:'Treatment Result' }}"
+                    data-category="{{ p.case.category|default:'General' }}"
+                    data-description="{{ p.case.description|default:'' }}">
+              <i class="bi bi-eye me-2"></i>View Details
+            </button>
+          </div>
+        </div>
+        
+        <!-- Card Content -->
+        <div class="card-content">
+          {% if p.case.title %}
+            <h5 class="card-title">{{ p.case.title }}</h5>
+          {% endif %}
+          
+          {% if p.case.category %}
+            <span class="badge bg-primary mb-2">
+              <i class="bi bi-tag-fill me-1"></i>{{ p.case.category }}
+            </span>
+          {% endif %}
+          
+          {% if p.case.description %}
+            <p class="card-text text-muted">
+              {{ p.case.description|truncatewords:15 }}
+            </p>
+          {% endif %}
+          
+          <div class="card-meta d-flex justify-content-between align-items-center mt-3">
+            <small class="text-muted">
+              <i class="bi bi-calendar3 me-1"></i>{{ p.created_at|date:"M Y" }}
+            </small>
+            {% if p.featured %}
+              <span class="badge bg-success">
+                <i class="bi bi-star-fill me-1"></i>Featured
+              </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="empty-state text-center py-5">
+        <div class="empty-icon mb-4">
+          <i class="bi bi-images" style="font-size: 4rem; color: var(--text-muted);"></i>
+        </div>
+        <h3 class="text-muted mb-3">No Results Available</h3>
+        <p class="text-muted">
+          We haven't published any before & after cases yet. Please check back soon!
+        </p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  
+  <!-- Load More Button (if needed) -->
+  {% if pairs|length > 12 %}
+  <div class="text-center mt-5">
+    <button class="btn btn-outline-primary btn-lg" id="loadMoreBtn">
+      <i class="bi bi-plus-circle me-2"></i>Load More Cases
+    </button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="imageModalLabel">Case Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="row g-0">
+          <div class="col-md-6 position-relative">
+            <img id="modalBeforeImage" class="w-100 h-100 object-fit-cover" alt="Before">
+            <div class="position-absolute bottom-0 start-0 p-3">
+              <span class="badge bg-dark bg-opacity-75 fs-6">Before</span>
+            </div>
+          </div>
+          <div class="col-md-6 position-relative">
+            <img id="modalAfterImage" class="w-100 h-100 object-fit-cover" alt="After">
+            <div class="position-absolute bottom-0 start-0 p-3">
+              <span class="badge bg-dark bg-opacity-75 fs-6">After</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 bg-light">
+        <div class="w-100">
+          <h6 id="modalTitle" class="mb-2"></h6>
+          <p id="modalCategory" class="text-primary mb-2"></p>
+          <p id="modalDescription" class="text-muted mb-0"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Gallery Specific Styles */
+.hero-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.hero-section .container {
+  position: relative;
+  z-index: 2;
+}
+
+.stat-item {
+  min-width: 120px;
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.filter-btn {
+  border-radius: 25px;
+  padding: 0.5rem 1.5rem;
+  transition: all 0.3s ease;
+  border: 2px solid var(--primary-color);
+}
+
+.filter-btn.active {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+}
+
+.gallery-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.card-image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.before-after-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-height: 250px;
+}
+
+.image-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.gallery-image {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.gallery-card:hover .gallery-image {
+  transform: scale(1.05);
+}
+
+.image-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+}
+
+.image-label {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.transform-arrow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  background: white;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  color: var(--primary-color);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.view-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gallery-card:hover .view-overlay {
+  opacity: 1;
+}
+
+.view-btn {
+  border-radius: 25px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.gallery-card:hover .view-btn {
+  transform: translateY(0);
+}
+
+.card-content {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+}
+
+.card-text {
+  flex-grow: 1;
+  line-height: 1.5;
+}
+
+.card-meta {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.empty-state {
+  background: rgba(248, 249, 250, 0.5);
+  border-radius: 16px;
+  margin: 2rem 0;
+}
+
+.gallery-item {
+  transition: all 0.3s ease;
+}
+
+.gallery-item.filtered-out {
+  transform: scale(0.8);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Modal Enhancements */
+.modal-content {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.modal-body img {
+  min-height: 400px;
+  max-height: 500px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .before-after-container {
+    min-height: 200px;
+  }
+  
+  .gallery-image {
+    height: 200px;
+  }
+  
+  .transform-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+  
+  .filter-buttons {
+    gap: 0.25rem;
+  }
+  
+  .filter-btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .modal-body img {
+    min-height: 250px;
+    max-height: 300px;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Filter functionality
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const galleryItems = document.querySelectorAll('.gallery-item');
+  
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const filter = this.getAttribute('data-filter');
+      
+      // Update active state
+      filterBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Filter items
+      galleryItems.forEach(item => {
+        const category = item.getAttribute('data-category');
+        
+        if (filter === 'all' || category === filter) {
+          item.classList.remove('filtered-out');
+          setTimeout(() => {
+            item.style.display = 'block';
+          }, 300);
+        } else {
+          item.classList.add('filtered-out');
+          setTimeout(() => {
+            item.style.display = 'none';
+          }, 300);
+        }
+      });
+    });
+  });
+  
+  // Modal functionality
+  const modal = document.getElementById('imageModal');
+  const viewBtns = document.querySelectorAll('.view-btn');
+  
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const beforeSrc = this.getAttribute('data-before');
+      const afterSrc = this.getAttribute('data-after');
+      const title = this.getAttribute('data-title');
+      const category = this.getAttribute('data-category');
+      const description = this.getAttribute('data-description');
+      
+      document.getElementById('modalBeforeImage').src = beforeSrc;
+      document.getElementById('modalAfterImage').src = afterSrc;
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalCategory').textContent = category;
+      document.getElementById('modalDescription').textContent = description || 'No description available.';
+    });
+  });
+  
+  // Load more functionality (if implemented)
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', function() {
+      // Implement load more functionality here
+      console.log('Load more clicked');
+    });
+  }
+  
+  // Smooth animations on scroll
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, index) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('fade-in-up');
+        }, index * 100);
+      }
+    });
+  }, observerOptions);
+  
+  galleryItems.forEach(item => {
+    observer.observe(item);
+  });
+});
+</script>
+{% endblock %}

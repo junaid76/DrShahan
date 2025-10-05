@@ -1,0 +1,851 @@
+{% extends 'portfolio/base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="pair-hero py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-12 text-center">
+        <nav aria-label="breadcrumb" class="mb-4">
+          <ol class="breadcrumb justify-content-center">
+            <li class="breadcrumb-item"><a href="/" class="text-white-50">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'gallery' %}" class="text-white-50">Gallery</a></li>
+            <li class="breadcrumb-item active text-white" aria-current="page">Case Details</li>
+          </ol>
+        </nav>
+        
+        <h1 class="hero-title display-4 fw-bold text-white mb-3">
+          {% if pair.case.title %}
+            {{ pair.case.title }}
+          {% else %}
+            Treatment Results
+          {% endif %}
+        </h1>
+        
+        {% if pair.case.category %}
+          <div class="hero-badge mb-4">
+            <i class="bi bi-tag-fill me-2"></i>{{ pair.case.category }}
+          </div>
+        {% endif %}
+        
+        <p class="lead text-white-75 mb-4">
+          Detailed view of this transformation case
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Main Comparison Section -->
+<section class="comparison-section py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <!-- Comparison Toggle Buttons -->
+        <div class="comparison-controls text-center mb-4">
+          <div class="btn-group" role="group" aria-label="Comparison view options">
+            <input type="radio" class="btn-check" name="viewMode" id="sideBySide" checked>
+            <label class="btn btn-outline-primary" for="sideBySide">
+              <i class="bi bi-layout-three-columns me-2"></i>Side by Side
+            </label>
+            
+            <input type="radio" class="btn-check" name="viewMode" id="slider">
+            <label class="btn btn-outline-primary" for="slider">
+              <i class="bi bi-arrows-expand me-2"></i>Interactive Slider
+            </label>
+            
+            <input type="radio" class="btn-check" name="viewMode" id="overlay">
+            <label class="btn btn-outline-primary" for="overlay">
+              <i class="bi bi-eye me-2"></i>Before/After Toggle
+            </label>
+          </div>
+        </div>
+        
+        <!-- Side by Side View -->
+        <div id="sideBySideView" class="comparison-view active">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="image-card before-card">
+                <div class="image-header">
+                  <h4 class="image-title">
+                    <i class="bi bi-arrow-left-circle me-2 text-danger"></i>Before Treatment
+                  </h4>
+                  {% if pair.pre_image.taken_at %}
+                    <small class="text-muted">
+                      <i class="bi bi-calendar3 me-1"></i>{{ pair.pre_image.taken_at|date:"F j, Y" }}
+                    </small>
+                  {% endif %}
+                </div>
+                <div class="image-container">
+                  <img src="{{ pair.pre_image.image.url }}" 
+                       alt="Before treatment - {{ pair.case.title|default:'Case' }}"
+                       class="comparison-image"
+                       id="beforeImage">
+                  <div class="image-overlay">
+                    <button class="btn btn-light btn-sm zoom-btn" data-image="before">
+                      <i class="bi bi-zoom-in me-1"></i>Zoom
+                    </button>
+                  </div>
+                </div>
+                {% if pair.pre_image.caption %}
+                  <div class="image-caption">
+                    <p class="mb-0 text-muted">{{ pair.pre_image.caption }}</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="image-card after-card">
+                <div class="image-header">
+                  <h4 class="image-title">
+                    <i class="bi bi-arrow-right-circle me-2 text-success"></i>After Treatment
+                  </h4>
+                  {% if pair.post_image.taken_at %}
+                    <small class="text-muted">
+                      <i class="bi bi-calendar3 me-1"></i>{{ pair.post_image.taken_at|date:"F j, Y" }}
+                    </small>
+                  {% endif %}
+                </div>
+                <div class="image-container">
+                  <img src="{{ pair.post_image.image.url }}" 
+                       alt="After treatment - {{ pair.case.title|default:'Case' }}"
+                       class="comparison-image"
+                       id="afterImage">
+                  <div class="image-overlay">
+                    <button class="btn btn-light btn-sm zoom-btn" data-image="after">
+                      <i class="bi bi-zoom-in me-1"></i>Zoom
+                    </button>
+                  </div>
+                </div>
+                {% if pair.post_image.caption %}
+                  <div class="image-caption">
+                    <p class="mb-0 text-muted">{{ pair.post_image.caption }}</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Interactive Slider View -->
+        <div id="sliderView" class="comparison-view">
+          <div class="slider-container">
+            <div class="before-after-slider" data-comparison>
+              <div class="before-image">
+                <img src="{{ pair.pre_image.image.url }}" 
+                     alt="Before treatment"
+                     class="slider-image">
+                <div class="image-label before-label">Before</div>
+              </div>
+              <div class="after-image">
+                <img src="{{ pair.post_image.image.url }}" 
+                     alt="After treatment"
+                     class="slider-image">
+                <div class="image-label after-label">After</div>
+              </div>
+              <div class="comparison-slider">
+                <div class="slider-handle">
+                  <i class="bi bi-arrows-expand"></i>
+                </div>
+              </div>
+            </div>
+            <div class="slider-instructions text-center mt-3">
+              <small class="text-muted">
+                <i class="bi bi-mouse me-1"></i>Drag the slider or click to compare
+              </small>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Toggle Overlay View -->
+        <div id="overlayView" class="comparison-view">
+          <div class="overlay-container">
+            <div class="overlay-images">
+              <img src="{{ pair.pre_image.image.url }}" 
+                   alt="Before treatment"
+                   class="overlay-image before-overlay active"
+                   id="overlayBefore">
+              <img src="{{ pair.post_image.image.url }}" 
+                   alt="After treatment"
+                   class="overlay-image after-overlay"
+                   id="overlayAfter">
+            </div>
+            <div class="overlay-controls text-center mt-3">
+              <button class="btn btn-outline-danger me-2 toggle-btn active" data-target="before">
+                <i class="bi bi-eye-slash me-1"></i>Before
+              </button>
+              <button class="btn btn-outline-success toggle-btn" data-target="after">
+                <i class="bi bi-eye me-1"></i>After
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Case Information Section -->
+<section class="case-info-section py-5 bg-light">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <div class="info-card">
+          <div class="card-header text-center">
+            <h3 class="mb-0">
+              <i class="bi bi-clipboard-data me-2 text-primary"></i>Case Information
+            </h3>
+          </div>
+          
+          <div class="card-body">
+            <div class="row g-4">
+              {% if pair.case.description %}
+                <div class="col-12">
+                  <div class="info-item">
+                    <h5 class="info-label">
+                      <i class="bi bi-file-text me-2"></i>Description
+                    </h5>
+                    <p class="info-content">{{ pair.case.description|linebreaks }}</p>
+                  </div>
+                </div>
+              {% endif %}
+              
+              <div class="col-md-6">
+                <div class="info-item">
+                  <h5 class="info-label">
+                    <i class="bi bi-tag me-2"></i>Category
+                  </h5>
+                  <p class="info-content">
+                    {% if pair.case.category %}
+                      <span class="badge bg-primary fs-6">{{ pair.case.category }}</span>
+                    {% else %}
+                      <span class="text-muted">General Treatment</span>
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="info-item">
+                  <h5 class="info-label">
+                    <i class="bi bi-calendar3 me-2"></i>Treatment Date
+                  </h5>
+                  <p class="info-content">
+                    {% if pair.created_at %}
+                      {{ pair.created_at|date:"F j, Y" }}
+                    {% else %}
+                      <span class="text-muted">Not specified</span>
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+              
+              {% if pair.featured %}
+                <div class="col-12">
+                  <div class="featured-badge text-center">
+                    <span class="badge bg-warning fs-6 px-3 py-2">
+                      <i class="bi bi-star-fill me-2"></i>Featured Case
+                    </span>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Action Section -->
+<section class="action-section py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto text-center">
+        <h3 class="mb-4">Interested in Similar Results?</h3>
+        <p class="lead text-muted mb-4">
+          Contact us to learn more about this treatment and how we can help you achieve your goals.
+        </p>
+        
+        <div class="action-buttons">
+          <a href="{% url 'gallery' %}" class="btn btn-outline-primary btn-lg me-3 mb-2">
+            <i class="bi bi-arrow-left me-2"></i>Back to Gallery
+          </a>
+          
+          {% if profile.phone %}
+            <a href="tel:{{ profile.phone }}" class="btn btn-primary btn-lg me-3 mb-2">
+              <i class="bi bi-telephone me-2"></i>Call Now
+            </a>
+          {% endif %}
+          
+          {% if profile.email %}
+            <a href="mailto:{{ profile.email }}" class="btn btn-success btn-lg mb-2">
+              <i class="bi bi-envelope me-2"></i>Send Email
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Image Zoom Modal -->
+<div class="modal fade" id="imageZoomModal" tabindex="-1" aria-labelledby="imageZoomModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-white" id="imageZoomModalLabel">Image Detail View</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body d-flex align-items-center justify-content-center p-0">
+        <img id="zoomedImage" class="img-fluid" style="max-height: 90vh; max-width: 90vw; object-fit: contain;">
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Pair Page Specific Styles */
+.pair-hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.pair-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.pair-hero .container {
+  position: relative;
+  z-index: 2;
+}
+
+.breadcrumb {
+  background: none;
+  padding: 0;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.hero-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 1.5rem;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.text-white-75 {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Comparison Controls */
+.comparison-controls {
+  margin-bottom: 2rem;
+}
+
+.btn-check:checked + .btn {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+/* Comparison Views */
+.comparison-view {
+  display: none;
+}
+
+.comparison-view.active {
+  display: block;
+}
+
+/* Image Cards */
+.image-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.image-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.image-header {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.image-title {
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.comparison-image {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.image-card:hover .comparison-image {
+  transform: scale(1.02);
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-card:hover .image-overlay {
+  opacity: 1;
+}
+
+.zoom-btn {
+  border-radius: 25px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+.image-caption {
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+}
+
+/* Slider View */
+.slider-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.before-after-slider {
+  position: relative;
+  height: 500px;
+  cursor: ew-resize;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.before-image,
+.after-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.after-image {
+  clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
+  transition: clip-path 0.3s ease;
+}
+
+.slider-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-label {
+  position: absolute;
+  top: 15px;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.before-label {
+  left: 15px;
+}
+
+.after-label {
+  right: 15px;
+}
+
+.comparison-slider {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  color: var(--primary-color);
+  font-weight: bold;
+  cursor: ew-resize;
+  transition: transform 0.3s ease;
+}
+
+.comparison-slider:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.slider-instructions {
+  margin-top: 1rem;
+}
+
+/* Overlay View */
+.overlay-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.overlay-images {
+  position: relative;
+  height: 500px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.overlay-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.overlay-image.active {
+  opacity: 1;
+}
+
+.overlay-controls {
+  margin-top: 1.5rem;
+}
+
+.toggle-btn {
+  min-width: 120px;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn.active {
+  background-color: currentColor;
+  color: white !important;
+}
+
+/* Case Info Section */
+.case-info-section {
+  background: #f8f9fa;
+}
+
+.info-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.info-card .card-header {
+  background: linear-gradient(135deg, var(--primary-color), #3498db);
+  color: white;
+  padding: 1.5rem;
+  border: none;
+}
+
+.info-card .card-body {
+  padding: 2rem;
+}
+
+.info-item {
+  margin-bottom: 1.5rem;
+}
+
+.info-label {
+  color: var(--text-dark);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.info-content {
+  color: var(--text-muted);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+.featured-badge {
+  padding-top: 1rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Action Section */
+.action-section {
+  background: white;
+}
+
+.action-buttons .btn {
+  border-radius: 8px;
+  font-weight: 600;
+  min-width: 150px;
+  transition: all 0.3s ease;
+}
+
+.action-buttons .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .comparison-controls .btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .comparison-controls .btn {
+    margin-bottom: 0.5rem;
+    border-radius: 8px !important;
+  }
+  
+  .comparison-image,
+  .slider-image,
+  .overlay-image {
+    height: 250px;
+  }
+  
+  .before-after-slider,
+  .overlay-images {
+    height: 250px;
+  }
+  
+  .comparison-slider {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .action-buttons {
+    text-align: center;
+  }
+  
+  .action-buttons .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Loading States */
+.comparison-image,
+.slider-image,
+.overlay-image {
+  background: #f8f9fa;
+}
+
+/* Focus States for Accessibility */
+.zoom-btn:focus,
+.toggle-btn:focus {
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.25);
+  outline: none;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // View mode switching
+  const viewModeInputs = document.querySelectorAll('input[name="viewMode"]');
+  const comparisonViews = document.querySelectorAll('.comparison-view');
+  
+  viewModeInputs.forEach(input => {
+    input.addEventListener('change', function() {
+      const targetView = this.id + 'View';
+      
+      comparisonViews.forEach(view => {
+        view.classList.remove('active');
+      });
+      
+      document.getElementById(targetView).classList.add('active');
+    });
+  });
+  
+  // Interactive slider functionality
+  const slider = document.querySelector('[data-comparison]');
+  if (slider) {
+    let isMouseDown = false;
+    
+    const updateSlider = (x) => {
+      const rect = slider.getBoundingClientRect();
+      const position = ((x - rect.left) / rect.width) * 100;
+      const clampedPosition = Math.max(0, Math.min(100, position));
+      
+      const afterImage = slider.querySelector('.after-image');
+      const sliderHandle = slider.querySelector('.comparison-slider');
+      
+      afterImage.style.clipPath = `polygon(${clampedPosition}% 0, 100% 0, 100% 100%, ${clampedPosition}% 100%)`;
+      sliderHandle.style.left = `${clampedPosition}%`;
+    };
+    
+    slider.addEventListener('mousedown', (e) => {
+      isMouseDown = true;
+      updateSlider(e.clientX);
+    });
+    
+    slider.addEventListener('mousemove', (e) => {
+      if (isMouseDown) {
+        updateSlider(e.clientX);
+      }
+    });
+    
+    slider.addEventListener('mouseup', () => {
+      isMouseDown = false;
+    });
+    
+    slider.addEventListener('mouseleave', () => {
+      isMouseDown = false;
+    });
+    
+    // Touch events for mobile
+    slider.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      isMouseDown = true;
+      updateSlider(e.touches[0].clientX);
+    });
+    
+    slider.addEventListener('touchmove', (e) => {
+      if (isMouseDown) {
+        e.preventDefault();
+        updateSlider(e.touches[0].clientX);
+      }
+    });
+    
+    slider.addEventListener('touchend', () => {
+      isMouseDown = false;
+    });
+  }
+  
+  // Toggle overlay functionality
+  const toggleBtns = document.querySelectorAll('.toggle-btn');
+  const overlayImages = document.querySelectorAll('.overlay-image');
+  
+  toggleBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const target = this.getAttribute('data-target');
+      
+      // Update button states
+      toggleBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Update image visibility
+      overlayImages.forEach(img => {
+        img.classList.remove('active');
+      });
+      
+      document.getElementById(`overlay${target.charAt(0).toUpperCase() + target.slice(1)}`).classList.add('active');
+    });
+  });
+  
+  // Zoom functionality
+  const zoomBtns = document.querySelectorAll('.zoom-btn');
+  const zoomModal = document.getElementById('imageZoomModal');
+  const zoomedImage = document.getElementById('zoomedImage');
+  
+  zoomBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const imageType = this.getAttribute('data-image');
+      const imageSrc = imageType === 'before' 
+        ? document.getElementById('beforeImage').src 
+        : document.getElementById('afterImage').src;
+      
+      zoomedImage.src = imageSrc;
+      
+      const modal = new bootstrap.Modal(zoomModal);
+      modal.show();
+    });
+  });
+  
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    const activeView = document.querySelector('.comparison-view.active');
+    
+    if (activeView && activeView.id === 'overlayView') {
+      if (e.key === 'ArrowLeft') {
+        document.querySelector('.toggle-btn[data-target="before"]').click();
+      } else if (e.key === 'ArrowRight') {
+        document.querySelector('.toggle-btn[data-target="after"]').click();
+      }
+    }
+  });
+  
+  // Auto-cycle for demonstration (optional)
+  let autoCycleInterval;
+  const startAutoCycle = () => {
+    const overlayView = document.getElementById('overlayView');
+    if (overlayView && overlayView.classList.contains('active')) {
+      autoCycleInterval = setInterval(() => {
+        const activeBtn = document.querySelector('.toggle-btn.active');
+        const currentTarget = activeBtn.getAttribute('data-target');
+        const nextTarget = currentTarget === 'before' ? 'after' : 'before';
+        document.querySelector(`.toggle-btn[data-target="${nextTarget}"]`).click();
+      }, 3000);
+    }
+  };
+  
+  const stopAutoCycle = () => {
+    if (autoCycleInterval) {
+      clearInterval(autoCycleInterval);
+      autoCycleInterval = null;
+    }
+  };
+  
+  // Start/stop auto-cycle based on view mode
+  viewModeInputs.forEach(input => {
+    input.addEventListener('change', function() {
+      stopAutoCycle();
+      if (this.id === 'overlay') {
+        setTimeout(startAutoCycle, 1000);
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
