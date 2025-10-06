@@ -22,6 +22,12 @@ class PatientCaseAdmin(admin.ModelAdmin):
     search_fields = ('title','profile__site_title')
     inlines = [CaseImageInline, PairInline]
 
+@admin.register(CaseImage)
+class CaseImageAdmin(admin.ModelAdmin):
+    list_display = ('case', 'image_type', 'caption', 'uploaded_at')
+    list_filter = ('image_type', 'uploaded_at')
+    search_fields = ('case__title', 'caption')
+
 @admin.register(BeforeAfterPair)
 class BeforeAfterPairAdmin(admin.ModelAdmin):
     list_display = ('case','publish','featured','created_at')

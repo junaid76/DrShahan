@@ -1,26 +1,35 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
-from django.core.management import call_command
 from .models import DoctorProfile, BeforeAfterPair, PatientCase
 
 def home(request):
     try:
-        # Ensure we have demo data
-        call_command('create_demo_data')
-        
-        # Get profile
+        # Get profile (no automatic demo data creation)
         profile = DoctorProfile.objects.first()
         if not profile:
-            raise Exception("No profile found")
+            # Create minimal profile if none exists
+            profile = DoctorProfile.objects.create(
+                site_title='Dr. Shahan',
+                tagline='Expert Medical Care & Advanced Treatments',
+                bio='Providing exceptional medical care with years of experience.',
+                phone='+1-555-0123',
+                email='dr.shahan@example.com',
+                is_live=True
+            )
             
-        # Get actual BeforeAfterPair objects if they exist
+        # Get ONLY the BeforeAfterPair objects you created in admin
         featured_pairs = BeforeAfterPair.objects.filter(
             publish=True,
             featured=True,
             case__consent_to_publish=True
-        ).select_related('case')[:6]
+        ).select_related('case', 'pre_image', 'post_image').distinct()
         
-        # Get cases for backup
+        # Debug: Print what we found
+        print(f"Found {featured_pairs.count()} featured pairs")
+        for pair in featured_pairs:
+            print(f"Pair: {pair.case.title} - {pair.pre_image.image} -> {pair.post_image.image}")
+        
+        # Get cases for backup display
         featured_cases = PatientCase.objects.filter(
             consent_to_publish=True
         )[:6]
@@ -28,12 +37,12 @@ def home(request):
         # Create context
         context = {
             'profile': profile, 
-            'featured_pairs': featured_pairs,  # Will be empty but template can handle it
+            'featured_pairs': featured_pairs,
             'featured_cases': featured_cases,
-            'has_demo_data': True
+            'has_admin_data': featured_pairs.exists()
         }
         
-        return render(request, 'portfolio/home_simple.html', context)
+        return render(request, 'portfolio/home.html', context)
         
     except Exception as e:
         # Log the error for debugging
@@ -91,22 +100,33 @@ def home(request):
 
 def gallery(request):
     try:
-        # Ensure we have demo data
-        call_command('create_demo_data')
-        
         profile = DoctorProfile.objects.first()
-        cases = PatientCase.objects.filter(consent_to_publish=True)
+        
+        # Get all published BeforeAfterPair objects (not just featured ones)
+        pairs = BeforeAfterPair.objects.filter(
+            publish=True,
+            case__consent_to_publish=True
+        ).select_related('case', 'pre_image', 'post_image').distinct().order_by('-created_at')
+        
+        # Debug: Print what we found
+        print(f"Gallery found {pairs.count()} pairs")
+        for pair in pairs:
+            print(f"Gallery Pair: {pair.case.title} - {pair.pre_image.image} -> {pair.post_image.image}")
         
         return render(request, 'portfolio/gallery.html', {
             'profile': profile,
-            'pairs': cases  # Using cases instead of pairs for now
+            'pairs': pairs  # Now using actual BeforeAfterPair objects
         })
     except Exception as e:
-        return HttpResponse('<h1>Gallery - Demo Data Loading...</h1>')
+        print(f"Gallery error: {e}")
+        import traceback
+        traceback.print_exc()
+        return HttpResponse('<h1>Gallery - Loading Error</h1>')
 
 def pair_detail(request, pair_id):
     try:
-        case = get_object_or_404(PatientCase, id=pair_id, consent_to_publish=True)
-        return render(request, 'portfolio/pair.html', {'pair': case})
+        pair = get_object_or_404(BeforeAfterPair, id=pair_id, publish=True)
+        return render(request, 'portfolio/pair.html', {'pair': pair})
     except Exception as e:
-        return HttpResponse('<h1>Case Details - Demo Data Loading...</h1>')
+        print(f"Pair detail error: {e}")
+        return HttpResponse('<h1>Case Details - Loading Error</h1>')

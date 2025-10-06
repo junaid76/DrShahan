@@ -88,7 +88,7 @@
           <div class="stat-icon">
             <i class="bi bi-award-fill"></i>
           </div>
-          <div class="stat-number">{{ featured_pairs|length }}+</div>
+          <div class="stat-number">{{ featured_pairs|length|default:"0" }}+</div>
           <div class="stat-label">Success Stories</div>
         </div>
       </div>
@@ -135,13 +135,13 @@
           <div class="card-image-container">
             <div class="before-after-slider" data-comparison>
               <div class="before-image">
-                <img src="{{ p.pre_image.image.url }}" 
+                <img src="/media/{{ p.pre_image.image }}" 
                      alt="Before - {{ p.case.title|default:'Treatment' }}"
                      class="comparison-image">
                 <div class="image-label before-label">Before</div>
               </div>
               <div class="after-image">
-                <img src="{{ p.post_image.image.url }}" 
+                <img src="/media/{{ p.post_image.image }}" 
                      alt="After - {{ p.case.title|default:'Treatment' }}"
                      class="comparison-image">
                 <div class="image-label after-label">After</div>
@@ -160,16 +160,13 @@
             </div>
           </div>
           
-          {% if p.case.title or p.case.category %}
-            <div class="card-content">
-              {% if p.case.title %}
-                <h5 class="card-title">{{ p.case.title }}</h5>
-              {% endif %}
-              {% if p.case.category %}
-                <span class="badge bg-primary">{{ p.case.category }}</span>
-              {% endif %}
-            </div>
-          {% endif %}
+          <div class="card-content">
+            <h5 class="card-title">{{ p.case.title }}</h5>
+            {% if p.case.category %}
+              <span class="badge bg-primary mb-2">{{ p.case.category }}</span>
+            {% endif %}
+            <p class="card-text text-muted">{{ p.case.description|truncatewords:15 }}</p>
+          </div>
         </div>
       </div>
       {% empty %}
@@ -198,46 +195,57 @@
 <!-- Services & Achievements Section -->
 <section id="services" class="services-section py-5">
   <div class="container">
-    <div class="row g-5">
-      <!-- Services Column -->
-      <div class="col-lg-6">
+    <!-- Section Header -->
+    <div class="row mb-5">
+      <div class="col-12 text-center">
+        <h2 class="display-6 fw-bold mb-3">Our Services & Achievements</h2>
+        <p class="lead text-muted">Comprehensive medical care with proven excellence</p>
+      </div>
+    </div>
+    
+    <div class="row g-4">
+      <!-- Services in Cards Layout -->
+      <div class="col-lg-8">
         <div class="services-content">
           <div class="section-header mb-4">
-            <h3 class="section-title h2 fw-bold mb-3">
-              <i class="bi bi-medical-bag me-3 text-primary"></i>Our Services
+            <h3 class="section-title h3 fw-bold mb-3 d-flex align-items-center">
+              <i class="bi bi-medical-bag me-3 text-primary"></i>Medical Services
             </h3>
-            <p class="text-muted">Comprehensive medical care tailored to your needs</p>
           </div>
           
           {% if profile.services %}
-            <div class="services-list">
+            <div class="services-grid row g-3">
               {% for service in profile.services.splitlines %}
                 {% if service %}
-                  <div class="service-item">
-                    <div class="service-icon">
-                      <i class="bi bi-check-circle-fill text-success"></i>
-                    </div>
-                    <div class="service-content">
-                      <h5 class="service-title">{{ service }}</h5>
-                      <p class="service-description text-muted">
-                        Professional {{ service|lower }} with advanced techniques and personalized care.
-                      </p>
+                  <div class="col-md-6">
+                    <div class="service-card">
+                      <div class="service-icon">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                      </div>
+                      <div class="service-content">
+                        <h6 class="service-title mb-1">{{ service }}</h6>
+                        <p class="service-description text-muted mb-0">
+                          Professional {{ service|lower }} services
+                        </p>
+                      </div>
                     </div>
                   </div>
                 {% endif %}
               {% endfor %}
             </div>
           {% else %}
-            <div class="placeholder-content">
-              <div class="service-item">
-                <div class="service-icon">
-                  <i class="bi bi-check-circle-fill text-success"></i>
-                </div>
-                <div class="service-content">
-                  <h5 class="service-title">Comprehensive Care</h5>
-                  <p class="service-description text-muted">
-                    Professional medical services with advanced techniques.
-                  </p>
+            <div class="services-grid row g-3">
+              <div class="col-md-6">
+                <div class="service-card">
+                  <div class="service-icon">
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                  </div>
+                  <div class="service-content">
+                    <h6 class="service-title mb-1">Comprehensive Care</h6>
+                    <p class="service-description text-muted mb-0">
+                      Professional medical services
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -245,45 +253,59 @@
         </div>
       </div>
       
-      <!-- Achievements Column -->
-      <div class="col-lg-6">
+      <!-- Achievements in Compact Layout -->
+      <div class="col-lg-4">
         <div class="achievements-content">
           <div class="section-header mb-4">
-            <h3 class="section-title h2 fw-bold mb-3">
+            <h3 class="section-title h3 fw-bold mb-3 d-flex align-items-center">
               <i class="bi bi-trophy me-3 text-warning"></i>Achievements
             </h3>
-            <p class="text-muted">Recognition and milestones in medical excellence</p>
           </div>
           
           {% if profile.achievements %}
             <div class="achievements-list">
               {% for achievement in profile.achievements.splitlines %}
                 {% if achievement %}
-                  <div class="achievement-item">
+                  <div class="achievement-item-compact">
                     <div class="achievement-icon">
                       <i class="bi bi-award-fill text-warning"></i>
                     </div>
                     <div class="achievement-content">
-                      <h5 class="achievement-title">{{ achievement }}</h5>
-                      <p class="achievement-year text-muted">Professional Recognition</p>
+                      <h6 class="achievement-title mb-0">{{ achievement }}</h6>
                     </div>
                   </div>
                 {% endif %}
               {% endfor %}
             </div>
           {% else %}
-            <div class="placeholder-content">
-              <div class="achievement-item">
+            <div class="achievements-list">
+              <div class="achievement-item-compact">
                 <div class="achievement-icon">
                   <i class="bi bi-award-fill text-warning"></i>
                 </div>
                 <div class="achievement-content">
-                  <h5 class="achievement-title">Medical Excellence</h5>
-                  <p class="achievement-year text-muted">Commitment to Quality Care</p>
+                  <h6 class="achievement-title mb-0">Medical Excellence</h6>
+                </div>
+              </div>
+              <div class="achievement-item-compact">
+                <div class="achievement-icon">
+                  <i class="bi bi-award-fill text-warning"></i>
+                </div>
+                <div class="achievement-content">
+                  <h6 class="achievement-title mb-0">Quality Care</h6>
                 </div>
               </div>
             </div>
           {% endif %}
+          
+          <!-- Additional Info Card -->
+          <div class="info-card mt-4">
+            <div class="info-content text-center">
+              <i class="bi bi-heart-pulse fs-1 text-primary mb-3"></i>
+              <h5 class="mb-2">Dedicated to Excellence</h5>
+              <p class="text-muted mb-0">Committed to providing the highest quality medical care with compassion and expertise.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -640,6 +662,97 @@
   padding-bottom: 1rem;
 }
 
+/* Service Cards Grid Layout */
+.services-grid {
+  margin-bottom: 2rem;
+}
+
+.service-card {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  border-left: 4px solid var(--primary-color);
+  height: 100%;
+}
+
+.service-card:hover {
+  background: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.service-card .service-icon {
+  font-size: 1.25rem;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.service-card .service-title {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.95rem;
+}
+
+.service-card .service-description {
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+/* Compact Achievement Items */
+.achievement-item-compact {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border-left: 4px solid #f39c12;
+}
+
+.achievement-item-compact:hover {
+  background: linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%);
+  transform: translateX(3px);
+  box-shadow: 0 3px 10px rgba(243, 156, 18, 0.2);
+}
+
+.achievement-item-compact .achievement-icon {
+  font-size: 1.1rem;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.achievement-item-compact .achievement-title {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+/* Info Card */
+.info-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  padding: 2rem 1.5rem;
+  color: white;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.info-card h5 {
+  color: white;
+  font-weight: 600;
+}
+
+.info-card .text-muted {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.9rem;
+}
+
+/* Legacy styles for backward compatibility */
 .service-item,
 .achievement-item {
   display: flex;
@@ -744,6 +857,50 @@
     height: 200px;
   }
   
+  /* Mobile responsive for services & achievements */
+  .services-grid .col-md-6 {
+    margin-bottom: 0.5rem;
+  }
+  
+  .service-card {
+    padding: 0.75rem;
+  }
+  
+  .service-card .service-title {
+    font-size: 0.9rem;
+  }
+  
+  .service-card .service-description {
+    font-size: 0.8rem;
+  }
+  
+  .achievement-item-compact {
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .achievement-item-compact .achievement-title {
+    font-size: 0.85rem;
+  }
+  
+  .info-card {
+    padding: 1.5rem 1rem;
+    margin-top: 2rem;
+  }
+  
+  .info-card .bi {
+    font-size: 2.5rem !important;
+  }
+  
+  .info-card h5 {
+    font-size: 1.1rem;
+  }
+  
+  .info-card p {
+    font-size: 0.85rem;
+  }
+  
+  /* Legacy mobile styles */
   .service-item,
   .achievement-item {
     flex-direction: column;
@@ -754,6 +911,14 @@
   .achievement-icon {
     margin-right: 0;
     margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 992px) {
+  /* On tablets, stack achievements below services */
+  .services-section .col-lg-8,
+  .services-section .col-lg-4 {
+    margin-bottom: 2rem;
   }
 }
 </style>
