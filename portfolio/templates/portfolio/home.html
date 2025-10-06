@@ -12,11 +12,15 @@
             <i class="bi bi-award-fill me-2"></i>Professional Medical Care
           </div>
           <h1 class="hero-title display-3 fw-bold mb-4">
-            {{ profile.site_title }}
+            {{ profile.site_title|default:"Dr. Shahan" }}
           </h1>
           {% if profile.tagline %}
             <p class="hero-subtitle lead fs-4 mb-4 text-white-75">
               {{ profile.tagline }}
+            </p>
+          {% else %}
+            <p class="hero-subtitle lead fs-4 mb-4 text-white-75">
+              Expert Medical Care & Advanced Treatments
             </p>
           {% endif %}
           {% if profile.bio %}

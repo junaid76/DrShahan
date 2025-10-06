@@ -7,15 +7,8 @@ def home(request):
         # Get profile (no automatic demo data creation)
         profile = DoctorProfile.objects.first()
         if not profile:
-            # Create minimal profile if none exists
-            profile = DoctorProfile.objects.create(
-                site_title='Dr. Shahan',
-                tagline='Expert Medical Care & Advanced Treatments',
-                bio='Providing exceptional medical care with years of experience.',
-                phone='+1-555-0123',
-                email='dr.shahan@example.com',
-                is_live=True
-            )
+            # No profile exists - show empty template (admin can create profile)
+            profile = None
             
         # Get ONLY the BeforeAfterPair objects you created in admin
         featured_pairs = BeforeAfterPair.objects.filter(
